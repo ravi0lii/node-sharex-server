@@ -41,7 +41,7 @@ app.post('/upload', function(req, res) {
     // Check if key is set
     if(!req.body.key) {
         res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify({
+        res.status(400).send(JSON.stringify({
             success: false,
             error: {
                 message: 'Key is empty.',
@@ -53,7 +53,7 @@ app.post('/upload', function(req, res) {
         var key = req.body.key;
         if(keys.indexOf(key) == -1) {
             res.setHeader('Content-Type', 'application/json');
-            res.send(JSON.stringify({
+            res.status(401).send(JSON.stringify({
                 success: false,
                 error: {
                     message: 'Key is invalid.',
@@ -65,7 +65,7 @@ app.post('/upload', function(req, res) {
             // Check if file was uploaded
             if(!req.files.file) {
                 res.setHeader('Content-Type', 'application/json');
-                res.send(JSON.stringify({
+                res.status(400).send(JSON.stringify({
                     success: false,
                     error: {
                         message: 'No file was uploaded.',
