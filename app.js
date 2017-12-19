@@ -28,6 +28,8 @@ if(!fs.existsSync('./uploads/')) {
 // Express basic stuff
 var express = require('express');
 var app = express();
+// Static directory for files
+app.use('/f', express.static('./uploads'));
 // body-parser middleware
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
