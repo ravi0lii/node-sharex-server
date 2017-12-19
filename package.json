@@ -24,6 +24,7 @@
   "dependencies": {
     "body-parser": "^1.18.2",
     "colors": "^1.1.2",
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "express-fileupload": "^0.3.0"
   }
 }
