@@ -11,6 +11,8 @@ const PORT = process.env.SUS_PORT || 3854;
 
 // Logger
 var logger = require('./logger.js');
+// Random string
+var randomString = require('random-string');
 
 // Express basic stuff
 var express = require('express');
