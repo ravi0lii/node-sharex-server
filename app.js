@@ -22,6 +22,7 @@ var fs = require('fs');
 // Create /uploads directory if not exists
 if(!fs.existsSync('./uploads/')) {
     fs.mkdirSync('./uploads/');
+    logger.info('Created /uploads directory');
 }
 
 // Express basic stuff
@@ -64,6 +65,7 @@ app.post('/upload', function(req, res) {
         // Check if key is registered
         var key = req.body.key;
         if(keys.indexOf(key) == -1) {
+            logger.auth('Failed authentication with key ' + key);
             res.setHeader('Content-Type', 'application/json');
             res.status(401).send(JSON.stringify({
                 success: false,
@@ -74,8 +76,10 @@ app.post('/upload', function(req, res) {
             }));
         } else {
             // Key is valid
+            logger.auth('Authentication with key ' + key.substr(0, 3) + '... succeeded');
             // Check if file was uploaded
             if(!req.files.file) {
+                logger.info('No file was sent, aborting...');
                 res.setHeader('Content-Type', 'application/json');
                 res.status(400).send(JSON.stringify({
                     success: false,
@@ -90,12 +94,16 @@ app.post('/upload', function(req, res) {
                 // Generate the path
                 var newFileName = randomString({length: config.fileNameLength}) + path.extname(file.name);
                 var uploadPath = __dirname + '/uploads/' + newFileName;
-
+                logger.info('Uploading file ' + file.name + ' to ' + newFileName);
                 // Move files
                 file.mv(uploadPath, function(err) {
-                    if(err) return res.status(500).send(err);
+                    if(err) {
+                        logger.error(err);
+                        return res.status(500).send(err);
+                    }
 
                     // Return the informations
+                    logger.info('Uploaded file');
                     res.setHeader('Content-Type', 'application/json');
                     res.send(JSON.stringify({
                         success: true,
