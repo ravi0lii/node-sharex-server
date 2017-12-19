@@ -20,5 +20,9 @@
   "bugs": {
     "url": "https://github.com/Moquo/node-sharex-upload-server/issues"
   },
-  "homepage": "https://github.com/Moquo/node-sharex-upload-server#readme"
+  "homepage": "https://github.com/Moquo/node-sharex-upload-server#readme",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "express": "^4.16.2"
+  }
 }

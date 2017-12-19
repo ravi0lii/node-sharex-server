@@ -19,3 +19,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+=============
+License Notes
+=============
+
+This software also incorporates a very small amount of code from third-party vendors,
+which is presumably licensed as follows:
+
+* express https://github.com/expressjs/express
+   (c) 2009-2014 TJ Holowaychuk <tj@vision-media.ca>
+   (c) 2013-2014 Roman Shtylman <shtylman+expressjs@gmail.com>
+   (c) 2014-2015 Douglas Christopher Wilson <doug@somethingdoug.com>
+   released under MIT License
+* colors https://github.com/Marak/colors.js
+   (c) Marak Squires (Original Library)
+   (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com) (Additional Functionality)
+   released under MIT License
