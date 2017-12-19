@@ -95,7 +95,7 @@ app.post('/upload', function(req, res) {
                 // Generate the path
                 var newFileName = randomString({length: config.fileNameLength}) + path.extname(file.name);
                 var uploadPath = __dirname + '/uploads/' + newFileName;
-                logger.info('Uploading file ' + file.name + ' to ' + newFileName + '(' + shortKey + ')');
+                logger.info('Uploading file ' + file.name + ' to ' + newFileName + ' (' + shortKey + ')');
                 // Move files
                 file.mv(uploadPath, function(err) {
                     if(err) {
