@@ -64,6 +64,7 @@ app.post('/upload', function(req, res) {
     } else {
         // Check if key is registered
         var key = req.body.key;
+        var shortKey = key.substr(0, 3) + '...';
         if(keys.indexOf(key) == -1) {
             logger.auth('Failed authentication with key ' + key);
             res.setHeader('Content-Type', 'application/json');
@@ -76,10 +77,10 @@ app.post('/upload', function(req, res) {
             }));
         } else {
             // Key is valid
-            logger.auth('Authentication with key ' + key.substr(0, 3) + '... succeeded');
+            logger.auth('Authentication with key ' + shortKey + ' succeeded');
             // Check if file was uploaded
             if(!req.files.file) {
-                logger.info('No file was sent, aborting...');
+                logger.info('No file was sent, aborting... (' + shortKey + ')');
                 res.setHeader('Content-Type', 'application/json');
                 res.status(400).send(JSON.stringify({
                     success: false,
@@ -94,16 +95,16 @@ app.post('/upload', function(req, res) {
                 // Generate the path
                 var newFileName = randomString({length: config.fileNameLength}) + path.extname(file.name);
                 var uploadPath = __dirname + '/uploads/' + newFileName;
-                logger.info('Uploading file ' + file.name + ' to ' + newFileName);
+                logger.info('Uploading file ' + file.name + ' to ' + newFileName + '(' + shortKey + ')');
                 // Move files
                 file.mv(uploadPath, function(err) {
                     if(err) {
-                        logger.error(err);
+                        logger.error(err + ' (' + shortKey + ')');
                         return res.status(500).send(err);
                     }
 
                     // Return the informations
-                    logger.info('Uploaded file');
+                    logger.info('Uploaded file ' + file.name + ' (' + shortKey + ')');
                     res.setHeader('Content-Type', 'application/json');
                     res.send(JSON.stringify({
                         success: true,
