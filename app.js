@@ -23,7 +23,11 @@ app.use(bodyParser.urlencoded({
 }));
 // express-fileupload middleware
 var fileUpload = require('express-fileupload');
-app.use(fileUpload());
+app.use(fileUpload({
+    limits: {
+        fileSize: require('./config.json').fileSizeLimit
+    }
+}));
 
 // / page
 app.get('/', function(req, res) {
@@ -56,6 +60,20 @@ app.post('/upload', function(req, res) {
             }));
         } else {
             // Key is valid
+            // Check if file was uploaded
+            if(!req.files.file) {
+                res.setHeader('Content-Type', 'application/json');
+                res.send(JSON.stringify({
+                    success: false,
+                    error: {
+                        message: 'No file was uploaded.',
+                        fix: 'Upload a file.'
+                    }
+                }));
+            } else {
+                // File was uploaded
+                var file = req.files.file;
+            }
         }
     }
 });

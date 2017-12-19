@@ -1,5 +1,6 @@
 {
     "keys": [
         "testkey"
-    ]
+    ],
+    "fileSizeLimit": 52428800
 }
