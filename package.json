@@ -1,0 +1,24 @@
+{
+  "name": "sharex-upload-server",
+  "version": "0.0.1",
+  "description": "ShareX upload server",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Moquo/node-sharex-upload-server.git"
+  },
+  "keywords": [
+    "sharex",
+    "upload",
+    "server"
+  ],
+  "author": "Moquo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Moquo/node-sharex-upload-server/issues"
+  },
+  "homepage": "https://github.com/Moquo/node-sharex-upload-server#readme"
+}
