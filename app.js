@@ -4,6 +4,7 @@
 
 // Constants
 const version = require('./package.json').version;
+const keys = require('./config.json').keys;
 
 // Get the port
 const PORT = process.env.SUS_PORT || 3854;
@@ -24,6 +25,36 @@ app.use(bodyParser.urlencoded({
 // / page
 app.get('/', function(req, res) {
     res.send('This server runs <a href="https://github.com/Moquo/node-sharex-upload-server">sharex-upload-server</a> v' + version + ' by <a href="https://moquo.de">Moquo</a>.');
+});
+
+// Upload
+app.post('/upload', function(req, res) {
+    // Check if key is set
+    if(!req.body.key) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify({
+            success: false,
+            error: {
+                message: 'Key is empty.',
+                fix: 'Submit a key.'
+            }
+        }));
+    } else {
+        // Check if key is registered
+        var key = req.body.key;
+        if(keys.indexOf(key) == -1) {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify({
+                success: false,
+                error: {
+                    message: 'Key is invalid.',
+                    fix: 'Submit a valid key.'
+                }
+            }));
+        } else {
+            // Key is valid
+        }
+    }
 });
 
 // Start web server
