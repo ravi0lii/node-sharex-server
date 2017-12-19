@@ -21,6 +21,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+// express-fileupload middleware
+var fileUpload = require('express-fileupload');
+app.use(fileUpload());
 
 // / page
 app.get('/', function(req, res) {
