@@ -2,5 +2,7 @@
     "keys": [
         "testkey"
     ],
-    "fileSizeLimit": 52428800
+    "fileSizeLimit": 52428800,
+    "fileNameLength": 8,
+    "serverUrl": "http://localhost:3854"
 }

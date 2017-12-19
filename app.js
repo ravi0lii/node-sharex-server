@@ -3,8 +3,9 @@
  */
 
 // Constants
+const config = require('./config.json')
 const version = require('./package.json').version;
-const keys = require('./config.json').keys;
+const keys = config.keys;
 
 // Get the port
 const PORT = process.env.SUS_PORT || 3854;
@@ -13,6 +14,15 @@ const PORT = process.env.SUS_PORT || 3854;
 var logger = require('./logger.js');
 // Random string
 var randomString = require('random-string');
+// Path
+var path = require('path');
+// Filesystem
+var fs = require('fs');
+
+// Create /uploads directory if not exists
+if(!fs.existsSync('./uploads/')) {
+    fs.mkdirSync('./uploads/');
+}
 
 // Express basic stuff
 var express = require('express');
@@ -29,7 +39,7 @@ app.use(fileUpload({
     safeFileNames: true,
     preserveExtension: true,
     limits: {
-        fileSize: require('./config.json').fileSizeLimit
+        fileSize: config.fileSizeLimit
     }
 }));
 
@@ -77,6 +87,23 @@ app.post('/upload', function(req, res) {
             } else {
                 // File was uploaded
                 var file = req.files.file;
+                // Generate the path
+                var newFileName = randomString({length: config.fileNameLength}) + path.extname(file.name);
+                var uploadPath = __dirname + '/uploads/' + newFileName;
+
+                // Move files
+                file.mv(uploadPath, function(err) {
+                    if(err) return res.status(500).send(err);
+
+                    // Return the informations
+                    res.setHeader('Content-Type', 'application/json');
+                    res.send(JSON.stringify({
+                        success: true,
+                        file: {
+                            url: config.serverUrl + '/f/' + newFileName
+                        }
+                    }));
+                });
             }
         }
     }
