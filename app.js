@@ -2,6 +2,9 @@
  * @author Moquo (Moritz Maier)
  */
 
+// Constants
+const version = require('./package.json').version;
+
 // Get the port
 const PORT = process.env.SUS_PORT || 3854;
 
@@ -17,6 +20,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+
+// / page
+app.get('/', function(req, res) {
+    res.send('This server runs <a href="https://github.com/Moquo/node-sharex-upload-server">sharex-upload-server</a> v' + version + ' by <a href="https://moquo.de">Moquo</a>.');
+});
 
 // Start web server
 app.listen(PORT, function() {
