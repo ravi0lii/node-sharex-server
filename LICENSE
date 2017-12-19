@@ -36,3 +36,7 @@ which is presumably licensed as follows:
    (c) Marak Squires (Original Library)
    (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com) (Additional Functionality)
    released under MIT License
+* body-parser https://github.com/expressjs/body-parser
+  (c) 2014 Jonathan Ong <me@jongleberry.com>
+  (c) 2014-2015 Douglas Christopher Wilson <doug@somethingdoug.com>
+  released under MIT License
