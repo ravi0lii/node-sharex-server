@@ -24,6 +24,8 @@ app.use(bodyParser.urlencoded({
 // express-fileupload middleware
 var fileUpload = require('express-fileupload');
 app.use(fileUpload({
+    safeFileNames: true,
+    preserveExtension: true,
     limits: {
         fileSize: require('./config.json').fileSizeLimit
     }
