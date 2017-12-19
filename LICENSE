@@ -43,3 +43,6 @@ which is presumably licensed as follows:
 * body-parser https://github.com/richardgirges/express-fileupload
    (c) 2015 Richard Girges
    released under MIT License
+* random-string https://github.com/valiton/node-random-string
+   (c) 2013 Valiton GmbH, Bastian 'hereandnow' Behrens
+   released under MIT License
