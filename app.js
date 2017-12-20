@@ -108,12 +108,13 @@ app.post('/upload', function(req, res) {
                     }
 
                     // Return the informations
-                    logger.info('Uploaded file ' + file.name + ' (' + shortKey + ')');
+                    logger.info('Uploaded file ' + file.name + ' to ' + newFileName + ' (' + shortKey + ')');
                     res.setHeader('Content-Type', 'application/json');
                     res.send(JSON.stringify({
                         success: true,
                         file: {
-                            url: config.serverUrl + '/f/' + newFileName
+                            url: config.serverUrl + '/f/' + newFileName,
+                            delete_url: config.serverUrl + '/delete?filename=' + newFileName + '&key=' + key
                         }
                     }));
                 });
