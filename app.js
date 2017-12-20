@@ -174,7 +174,21 @@ app.get('/delete', function(req, res) {
                         }
                     }));
                 } else {
-                    // File exists
+                    // File exists => Delete file
+                    fs.unlink(filePath, function(err) {
+                        if(err) {
+                            logger.error(err + ' (' + shortKey + ')');
+                            return res.status(500).send(err);
+                        }
+
+                        // Return the informations
+                        logger.info('Deleted file ' + fileName + ' (' + shortKey + ')');
+                        res.setHeader('Content-Type', 'application/json');
+                        res.send(JSON.stringify({
+                            success: true,
+                            message: "Deleted file " + fileName
+                        }));
+                    });
                 }
             });
         }
