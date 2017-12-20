@@ -131,6 +131,24 @@ app.get('/delete', function(req, res) {
                 fix: 'Submit a key and/or file name.'
             }
         }));
+    } else {
+        // Check if key is registered
+        var key = req.query.key;
+        var shortKey = key.substr(0, 3) + '...';
+        if(keys.indexOf(key) == -1) {
+            logger.auth('Failed authentication with key ' + key);
+            res.setHeader('Content-Type', 'application/json');
+            res.status(401).send(JSON.stringify({
+                success: false,
+                error: {
+                    message: 'Key is invalid.',
+                    fix: 'Submit a valid key.'
+                }
+            }));
+        } else {
+            // Key is valid
+            logger.auth('Authentication with key ' + shortKey + ' succeeded');
+        }
     }
 });
 
