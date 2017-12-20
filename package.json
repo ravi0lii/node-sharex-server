@@ -26,6 +26,7 @@
     "colors": "^1.1.2",
     "express": "^4.16.2",
     "express-fileupload": "^0.3.0",
+    "file-exists": "^5.0.0",
     "random-string": "^0.2.0"
   }
 }

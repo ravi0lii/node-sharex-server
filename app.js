@@ -18,6 +18,8 @@ var randomString = require('random-string');
 var path = require('path');
 // Filesystem
 var fs = require('fs');
+// file-exists
+var fileExists = require('file-exists');
 
 // Create /uploads directory if not exists
 if(!fs.existsSync('./uploads/')) {
@@ -152,6 +154,29 @@ app.get('/delete', function(req, res) {
             var fileName = req.query.filename;
             var filePath = __dirname + '/uploads/' + fileName;
             logger.info('Trying to delete ' + fileName + ' (' + shortKey + ')');
+
+            // Check if file exists
+            fileExists(filePath, function(err, exists) {
+                if(err) {
+                    logger.error(err + ' (' + shortKey + ')');
+                    return res.status(500).send(err);
+                }
+
+                if(!exists) {
+                    // File doesnt exists
+                    logger.info('File ' + fileName + ' doesnt exists, aborting... (' + shortKey + ')');
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(400).send(JSON.stringify({
+                        success: false,
+                        error: {
+                            message: 'The file doesnt exists.',
+                            fix: 'Submit a existing file name.'
+                        }
+                    }));
+                } else {
+                    // File exists
+                }
+            });
         }
     }
 });

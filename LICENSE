@@ -46,3 +46,6 @@ which is presumably licensed as follows:
 * random-string https://github.com/valiton/node-random-string
    (c) 2013 Valiton GmbH, Bastian 'hereandnow' Behrens
    released under MIT License
+* file-exists https://github.com/scottcorgan/file-exists
+   (c) 2014 Scott Corgan
+   released under MIT License
