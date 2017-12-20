@@ -148,6 +148,10 @@ app.get('/delete', function(req, res) {
         } else {
             // Key is valid
             logger.auth('Authentication with key ' + shortKey + ' succeeded');
+            // Generate file informations
+            var fileName = req.query.filename;
+            var filePath = __dirname + '/uploads/' + fileName;
+            logger.info('Trying to delete ' + fileName + ' (' + shortKey + ')');
         }
     }
 });
