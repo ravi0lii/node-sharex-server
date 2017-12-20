@@ -51,7 +51,7 @@ app.get('/', function(req, res) {
     res.send('This server runs <a href="https://github.com/Moquo/node-sharex-upload-server">sharex-upload-server</a> v' + version + ' by <a href="https://moquo.de">Moquo</a>.');
 });
 
-// Upload
+// Upload file
 app.post('/upload', function(req, res) {
     // Check if key is set
     if(!req.body.key) {
@@ -117,6 +117,20 @@ app.post('/upload', function(req, res) {
                 });
             }
         }
+    }
+});
+
+// Delete file
+app.get('/delete', function(req, res) {
+    if(!req.query.filename || !req.query.key) {
+        res.setHeader('Content-Type', 'application/json');
+        res.status(400).send(JSON.stringify({
+            success: false,
+            error: {
+                message: 'Key and/or file name is empty.',
+                fix: 'Submit a key and/or file name.'
+            }
+        }));
     }
 });
 
