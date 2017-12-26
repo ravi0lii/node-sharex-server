@@ -50,7 +50,7 @@ app.use(fileUpload({
 
 // / page
 app.get('/', function(req, res) {
-    res.send('This server runs <a href="https://github.com/Moquo/node-sharex-upload-server">sharex-upload-server</a> v' + version + ' by <a href="https://moquo.de">Moquo</a>.');
+    res.send('This server runs <a href="https://github.com/Moquo/node-sharex-server">node-sharex-server</a> v' + version + ' by <a href="https://moquo.de">Moquo</a>.');
 });
 
 // Upload file
