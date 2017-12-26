@@ -97,27 +97,43 @@ app.post('/upload', function(req, res) {
                 // File was uploaded
                 var file = req.files.file;
                 // Generate the path
-                var newFileName = randomString({length: config.fileNameLength}) + path.extname(file.name);
+                var fileExtension = path.extname(file.name);
+                var newFileName = randomString({length: config.fileNameLength}) + fileExtension;
                 var uploadPath = __dirname + '/uploads/' + newFileName;
                 logger.info('Uploading file ' + file.name + ' to ' + newFileName + ' (' + shortKey + ')');
-                // Move files
-                file.mv(uploadPath, function(err) {
-                    if(err) {
-                        logger.error(err + ' (' + shortKey + ')');
-                        return res.status(500).send(err);
-                    }
 
-                    // Return the informations
-                    logger.info('Uploaded file ' + file.name + ' to ' + newFileName + ' (' + shortKey + ')');
+                // Check file extension (if enabled)
+                if(config.fileExtensionCheck.enabled && config.fileExtensionCheck.extensionsAllowed.indexOf(fileExtension) == -1) {
+                    // Invalid file extension
+                    logger.info('File ' + file.name + ' has an invalid extension, aborting... (' + shortKey + ')');
                     res.setHeader('Content-Type', 'application/json');
-                    res.send(JSON.stringify({
-                        success: true,
-                        file: {
-                            url: config.serverUrl + '/f/' + newFileName,
-                            delete_url: config.serverUrl + '/delete?filename=' + newFileName + '&key=' + key
+                    res.status(400).send(JSON.stringify({
+                        success: false,
+                        error: {
+                            message: 'Invalid file extension.',
+                            fix: 'Upload a file with a valid extension.'
                         }
                     }));
-                });
+                } else {
+                    // Move files
+                    file.mv(uploadPath, function(err) {
+                        if(err) {
+                            logger.error(err + ' (' + shortKey + ')');
+                            return res.status(500).send(err);
+                        }
+
+                        // Return the informations
+                        logger.info('Uploaded file ' + file.name + ' to ' + newFileName + ' (' + shortKey + ')');
+                        res.setHeader('Content-Type', 'application/json');
+                        res.send(JSON.stringify({
+                            success: true,
+                            file: {
+                                url: config.serverUrl + '/f/' + newFileName,
+                                delete_url: config.serverUrl + '/delete?filename=' + newFileName + '&key=' + key
+                            }
+                        }));
+                    });
+                }
             }
         }
     }
