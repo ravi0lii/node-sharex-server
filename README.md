@@ -45,3 +45,6 @@ You can configure the server in the `config.json` file. Options:
     "DeletionURL": "$json:file.delete_url$"
 }
 ```
+
+# License
+[MIT](/LICENSE)
