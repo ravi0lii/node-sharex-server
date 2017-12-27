@@ -27,3 +27,22 @@ You can configure the server in the `config.json` file. Options:
 * `fileExtensionCheck`: Check the extension of uploaded files
     * `enabled`: Is this feature enabled?
     * `extensionsAllowed`: The extensions which are whitelisted (if the feature is enabled).
+
+# ShareX client configuration
+**NOTE:** Replace *UPLOADER\_NAME*, *SERVER\_URL* and *YOUR\_KEY* with your own values!
+```json
+{
+    "Name": "UPLOADER_NAME",
+    "DestinationType": "ImageUploader, FileUploader",
+    "RequestType": "POST",
+    "RequestURL": "SERVER_URL/upload",
+    "FileFormName": "file",
+    "Arguments": {
+        "key": "YOUR_KEY"
+    },
+    "ResponseType": "Text",
+    "URL": "$json:file.url$",
+    "ThumbnailURL": "",
+    "DeletionURL": "$json:file.delete_url$"
+}
+```
