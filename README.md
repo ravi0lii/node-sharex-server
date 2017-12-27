@@ -3,7 +3,6 @@
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [ShareX client configuration](#sharex-client-configuration)
-- [Screenshots](#screenshots)
 - [License](#license)  
 
 # What is this
