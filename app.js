@@ -16,13 +16,16 @@ var logger = require('./logger.js');
 var randomString = require('random-string');
 // Path
 var path = require('path');
+
 // Filesystem
 var fs = require('fs');
 // file-exists
 var fileExists = require('file-exists');
+// Q promises/deferreds
+var Q = require('q');
 
 // Create /uploads directory if not exists
-if(!fs.existsSync('./uploads/')) {
+if(config.useLocalStaticServe && !fs.existsSync('./uploads/')) {
     fs.mkdirSync('./uploads/');
     logger.info('Created /uploads directory');
 }
@@ -30,14 +33,19 @@ if(!fs.existsSync('./uploads/')) {
 // Express basic stuff
 var express = require('express');
 var app = express();
+
 // Static directory for files
-app.use('/f', express.static('./uploads'));
+if(config.useLocalStaticServe) {
+    app.use('/f', express.static('./uploads'));
+}
+
 // body-parser middleware
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+
 // express-fileupload middleware
 var fileUpload = require('express-fileupload');
 app.use(fileUpload({
@@ -96,44 +104,63 @@ app.post('/upload', function(req, res) {
             } else {
                 // File was uploaded
                 var file = req.files.file;
-                // Generate the path
+
+                // Generate a unique path (so it will not conflict with any existing files named the same)
+                var getUniqueFilepathDeferred = Q.defer();
                 var fileExtension = path.extname(file.name);
-                var newFileName = randomString({length: config.fileNameLength}) + fileExtension;
-                var uploadPath = __dirname + '/uploads/' + newFileName;
-                logger.info('Uploading file ' + file.name + ' to ' + newFileName + ' (' + shortKey + ')');
 
-                // Check file extension (if enabled)
-                if(config.fileExtensionCheck.enabled && config.fileExtensionCheck.extensionsAllowed.indexOf(fileExtension) == -1) {
-                    // Invalid file extension
-                    logger.info('File ' + file.name + ' has an invalid extension, aborting... (' + shortKey + ')');
-                    res.setHeader('Content-Type', 'application/json');
-                    res.status(400).send(JSON.stringify({
-                        success: false,
-                        error: {
-                            message: 'Invalid file extension.',
-                            fix: 'Upload a file with a valid extension.'
-                        }
-                    }));
-                } else {
-                    // Move files
-                    file.mv(uploadPath, function(err) {
-                        if(err) {
-                            logger.error(err + ' (' + shortKey + ')');
-                            return res.status(500).send(err);
-                        }
+                var tryNewRandomString = function() {
+                    var newFileName = randomString({length: config.fileNameLength}) + fileExtension;
+                    var uploadPath = path.join(config.uploadDirectory, newFileName);
 
-                        // Return the informations
-                        logger.info('Uploaded file ' + file.name + ' to ' + newFileName + ' (' + shortKey + ')');
+                    fileExists(uploadPath).then(function(doesFileExist) {
+                        if(doesFileExist) {
+                            tryNewRandomString();
+                        } else {
+                            getUniqueFilepathDeferred.resolve({ fileName: newFileName, path: uploadPath });
+                        }
+                    }, function(err) {
+                        res.status(500).send(err + ' (' + shortKey + ')');
+                    });
+                };
+                tryNewRandomString();
+
+                getUniqueFilepathDeferred.promise.then(function(payload) {
+                    logger.info('Uploading file ' + file.name + ' to ' + payload.path + ' (' + shortKey + ')');
+
+                    // Check file extension (if enabled)
+                    if(config.fileExtensionCheck.enabled && config.fileExtensionCheck.extensionsAllowed.indexOf(fileExtension) == -1) {
+                        // Invalid file extension
+                        logger.info('File ' + file.name + ' has an invalid extension, aborting... (' + shortKey + ')');
                         res.setHeader('Content-Type', 'application/json');
-                        res.send(JSON.stringify({
-                            success: true,
-                            file: {
-                                url: config.serverUrl + '/f/' + newFileName,
-                                delete_url: config.serverUrl + '/delete?filename=' + newFileName + '&key=' + key
+                        res.status(400).send(JSON.stringify({
+                            success: false,
+                            error: {
+                                message: 'Invalid file extension.',
+                                fix: 'Upload a file with a valid extension.'
                             }
                         }));
-                    });
-                }
+                    } else {
+                        // Move files
+                        file.mv(payload.path, function(err) {
+                            if(err) {
+                                logger.error(err + ' (' + shortKey + ')');
+                                return res.status(500).send(err);
+                            }
+    
+                            // Return the informations
+                            logger.info('Uploaded file ' + file.name + ' to ' + payload.path + ' (' + shortKey + ')');
+                            res.setHeader('Content-Type', 'application/json');
+                            res.send(JSON.stringify({
+                                success: true,
+                                file: {
+                                    url: config.staticFileServerUrl + payload.fileName,
+                                    delete_url: config.serverUrl + '/delete?filename=' + payload.fileName + '&key=' + key
+                                }
+                            }));
+                        });
+                    }
+                });
             }
         }
     }
@@ -169,7 +196,7 @@ app.get('/delete', function(req, res) {
             logger.auth('Authentication with key ' + shortKey + ' succeeded');
             // Generate file informations
             var fileName = req.query.filename;
-            var filePath = __dirname + '/uploads/' + fileName;
+            var filePath = path.join(config.uploadDirectory, fileName);
             logger.info('Trying to delete ' + fileName + ' (' + shortKey + ')');
 
             // Check if file exists
@@ -212,7 +239,19 @@ app.get('/delete', function(req, res) {
     }
 });
 
-// Start web server
-app.listen(PORT, function() {
-    logger.success('Now listening on port ' + PORT);
-});
+// based on whether or not SSL is enabled, run http or https web server
+var server;
+if(!config.ssl.useSSL) {
+    var http = require('http');
+    server = http.createServer(app);
+    server.listen(PORT);
+} else {
+    var https = require('https');
+    server = https.createServer({
+        key: fs.readFileSync(config.ssl.privateKeyPath, 'utf8'),
+        cert: fs.readFileSync(config.ssl.certificatePath, 'utf8')
+    }, app);
+}
+
+server.listen(PORT);
+logger.success('Now listening on port ' + PORT);
