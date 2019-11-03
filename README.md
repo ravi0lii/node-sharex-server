@@ -10,6 +10,7 @@ node-sharex-server is a [ShareX](https://getsharex.com) upload server which is e
 * File-sharing:
     * Uploading files (also images)
     * Allowing only configured file extensions (for more safety)
+    * Randomly generated file names from dictionary file.
 
 # Installation
 **NOTE:** You need git (to clone this repo) and nodejs (with npm) to run this program.  
