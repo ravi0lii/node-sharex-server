@@ -7,6 +7,7 @@ const config = require('./config.json')
 const version = require('./package.json').version;
 const keys = config.keys;
 
+
 // Get the port
 const PORT = process.env.SUS_PORT || 3854;
 
@@ -98,7 +99,35 @@ app.post('/upload', function(req, res) {
                 var file = req.files.file;
                 // Generate the path
                 var fileExtension = path.extname(file.name);
-                var newFileName = randomString({length: config.fileNameLength}) + fileExtension;
+                //Creates newFileName and vars used in for loop
+                var newFileName = "", i,j;
+                //Checks if dictionary file name setting is enabled
+                if(config.fileDictionaryName.enabled) {
+                  var fs = require("fs");
+                  for(i in config.fileDictionaryName.dictionaryFileOrder){
+                    //Preforms readFileSync on first dictionary.
+                    var text = fs.readFileSync(config.fileDictionaryName.dictionaryFileOrder[i].fileName).toString('utf-8');
+                    var textByLine = text.split("\n");
+                    //Loops until wordsFromFile limit has been reached.
+                    for(j=0;j !== config.fileDictionaryName.dictionaryFileOrder[i].wordsFromFile; j++)
+                    {
+                      //Adds new dictionary word to newFileName var.
+                      newFileName += textByLine[Math.floor(Math.random()*textByLine.length)].trim();
+                      //if wordLogging is enabled, it will list updates every loop ^_^
+                      if(config.fileDictionaryName.wordLogging)
+                      {
+                        logger.info(newFileName);
+                      }
+                    }
+                  }
+                  newFileName += fileExtension;
+                }
+                else {
+                  //if disabled
+                  var newFileName = randomString({length: config.fileNameLength}) + fileExtension;
+
+                }
+
                 var uploadPath = __dirname + '/uploads/' + newFileName;
                 logger.info('Uploading file ' + file.name + ' to ' + newFileName + ' (' + shortKey + ')');
 
