@@ -4,7 +4,15 @@
     ],
     "fileSizeLimit": 52428800,
     "fileNameLength": 8,
+    "useLocalStaticServe": false,
+    "staticFileServerUrl": "http://localhost:3854",
     "serverUrl": "http://localhost:3854",
+    "uploadDirectory": "uploads/",
+    "ssl": {
+        "useSSL": false,
+        "privateKeyPath": "",
+        "certificatePath": ""
+    },
     "fileExtensionCheck": {
         "enabled": false,
         "extensionsAllowed": [
