@@ -13,7 +13,7 @@ node-sharex-server is a [ShareX](https://getsharex.com) upload server which is e
 
 # Installation
 **NOTE:** You need git (to clone this repo) and nodejs (with npm) to run this program.  
-First we have to clone this repo. You can do that by typing `git clone git@github.com:Moquo/node-sharex-server.git` (for ssh) or `git clone https://github.com/Moquo/node-sharex-server.git` (for https). After going into the directory, we have to install the dependencies. Type `npm install` to do so. You can start node-sharex-server now by typing `node app.js`. You could use e.g. pm2 to run node-sharex-server in the background. Environment variables:
+First we have to clone this repo. You can do that by typing `git clone git@github.com:ravi0lii/node-sharex-server.git` (for ssh) or `git clone https://github.com/ravi0lii/node-sharex-server.git` (for https). After going into the directory, we have to install the dependencies. Type `npm install` to do so. You can start node-sharex-server now by typing `node app.js`. You could use e.g. pm2 to run node-sharex-server in the background. Environment variables:
 * `PORT`: The port which is used by the web server
 
 # Configuration
@@ -22,7 +22,14 @@ You can configure the server in the `config.json` file. Options:
 * `keys`: You can add keys (authentication tokens) here.
 * `fileSizeLimit`: You can set the file size limit (in bytes) here. Example: You want to set the limit to 100 mb. That means we have to change the value to 100 (MB) \* 1024 (kB) \* 1024 (B) = 104857600 (B).
 * `fileNameLength`: The length of the generated file names.
+* `useLocalStaticServe`: Use the express.static middleware to serve the uploaded files.
+* `staticFileServerUrl`: The url that should be sent to the ShareX client.
 * `serverUrl`: The url where you can reach the server without the finalizing slash (/).
+* `uploadDirectory`: The directory that should be used for saving the files.
+* `ssl`: SSL-related options
+    * `useSSL`:
+    * `privateKeyPath`: The path to the ssl private key.
+    * `certificatePath`: The path to the ssl certificate.
 * `fileExtensionCheck`: Check the extension of uploaded files
     * `enabled`: Is this feature enabled?
     * `extensionsAllowed`: The extensions which are whitelisted (if the feature is enabled).

@@ -1,5 +1,5 @@
 /**
- * @author Moquo (Moritz Maier)
+ * @author ravi0lii and contributors
  */
 
 // Constants
@@ -25,7 +25,7 @@ var fileExists = require('file-exists');
 var Q = require('q');
 
 // Create /uploads directory if not exists
-if(config.useLocalStaticServe && !fs.existsSync('./uploads/')) {
+if (config.useLocalStaticServe && !fs.existsSync('./uploads/')) {
     fs.mkdirSync('./uploads/');
     logger.info('Created /uploads directory');
 }
@@ -35,7 +35,7 @@ var express = require('express');
 var app = express();
 
 // Static directory for files
-if(config.useLocalStaticServe) {
+if (config.useLocalStaticServe) {
     app.use('/f', express.static('./uploads'));
 }
 
@@ -57,14 +57,14 @@ app.use(fileUpload({
 }));
 
 // / page
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
     res.send('This server runs <a href="https://github.com/Moquo/node-sharex-server">node-sharex-server</a> v' + version + ' by <a href="https://moquo.de">Moquo</a>.');
 });
 
 // Upload file
-app.post('/upload', function(req, res) {
+app.post('/upload', function (req, res) {
     // Check if key is set
-    if(!req.body.key) {
+    if (!req.body.key) {
         res.setHeader('Content-Type', 'application/json');
         res.status(400).send(JSON.stringify({
             success: false,
@@ -77,7 +77,7 @@ app.post('/upload', function(req, res) {
         // Check if key is registered
         var key = req.body.key;
         var shortKey = key.substr(0, 3) + '...';
-        if(keys.indexOf(key) == -1) {
+        if (keys.indexOf(key) == -1) {
             logger.auth('Failed authentication with key ' + key);
             res.setHeader('Content-Type', 'application/json');
             res.status(401).send(JSON.stringify({
@@ -91,7 +91,7 @@ app.post('/upload', function(req, res) {
             // Key is valid
             logger.auth('Authentication with key ' + shortKey + ' succeeded');
             // Check if file was uploaded
-            if(!req.files.file) {
+            if (!req.files.file) {
                 logger.info('No file was sent, aborting... (' + shortKey + ')');
                 res.setHeader('Content-Type', 'application/json');
                 res.status(400).send(JSON.stringify({
@@ -109,27 +109,27 @@ app.post('/upload', function(req, res) {
                 var getUniqueFilepathDeferred = Q.defer();
                 var fileExtension = path.extname(file.name);
 
-                var tryNewRandomString = function() {
-                    var newFileName = randomString({length: config.fileNameLength}) + fileExtension;
+                var tryNewRandomString = function () {
+                    var newFileName = randomString({ length: config.fileNameLength }) + fileExtension;
                     var uploadPath = path.join(config.uploadDirectory, newFileName);
 
-                    fileExists(uploadPath).then(function(doesFileExist) {
-                        if(doesFileExist) {
+                    fileExists(uploadPath).then(function (doesFileExist) {
+                        if (doesFileExist) {
                             tryNewRandomString();
                         } else {
                             getUniqueFilepathDeferred.resolve({ fileName: newFileName, path: uploadPath });
                         }
-                    }, function(err) {
+                    }, function (err) {
                         res.status(500).send(err + ' (' + shortKey + ')');
                     });
                 };
                 tryNewRandomString();
 
-                getUniqueFilepathDeferred.promise.then(function(payload) {
+                getUniqueFilepathDeferred.promise.then(function (payload) {
                     logger.info('Uploading file ' + file.name + ' to ' + payload.path + ' (' + shortKey + ')');
 
                     // Check file extension (if enabled)
-                    if(config.fileExtensionCheck.enabled && config.fileExtensionCheck.extensionsAllowed.indexOf(fileExtension) == -1) {
+                    if (config.fileExtensionCheck.enabled && config.fileExtensionCheck.extensionsAllowed.indexOf(fileExtension) == -1) {
                         // Invalid file extension
                         logger.info('File ' + file.name + ' has an invalid extension, aborting... (' + shortKey + ')');
                         res.setHeader('Content-Type', 'application/json');
@@ -142,12 +142,12 @@ app.post('/upload', function(req, res) {
                         }));
                     } else {
                         // Move files
-                        file.mv(payload.path, function(err) {
-                            if(err) {
+                        file.mv(payload.path, function (err) {
+                            if (err) {
                                 logger.error(err + ' (' + shortKey + ')');
                                 return res.status(500).send(err);
                             }
-    
+
                             // Return the informations
                             logger.info('Uploaded file ' + file.name + ' to ' + payload.path + ' (' + shortKey + ')');
                             res.setHeader('Content-Type', 'application/json');
@@ -167,8 +167,8 @@ app.post('/upload', function(req, res) {
 });
 
 // Delete file
-app.get('/delete', function(req, res) {
-    if(!req.query.filename || !req.query.key) {
+app.get('/delete', function (req, res) {
+    if (!req.query.filename || !req.query.key) {
         res.setHeader('Content-Type', 'application/json');
         res.status(400).send(JSON.stringify({
             success: false,
@@ -181,7 +181,7 @@ app.get('/delete', function(req, res) {
         // Check if key is registered
         var key = req.query.key;
         var shortKey = key.substr(0, 3) + '...';
-        if(keys.indexOf(key) == -1) {
+        if (keys.indexOf(key) == -1) {
             logger.auth('Failed authentication with key ' + key);
             res.setHeader('Content-Type', 'application/json');
             res.status(401).send(JSON.stringify({
@@ -200,13 +200,13 @@ app.get('/delete', function(req, res) {
             logger.info('Trying to delete ' + fileName + ' (' + shortKey + ')');
 
             // Check if file exists
-            fileExists(filePath, function(err, exists) {
-                if(err) {
+            fileExists(filePath, function (err, exists) {
+                if (err) {
                     logger.error(err + ' (' + shortKey + ')');
                     return res.status(500).send(err);
                 }
 
-                if(!exists) {
+                if (!exists) {
                     // File doesnt exists
                     logger.info('File ' + fileName + ' doesnt exists, aborting... (' + shortKey + ')');
                     res.setHeader('Content-Type', 'application/json');
@@ -219,8 +219,8 @@ app.get('/delete', function(req, res) {
                     }));
                 } else {
                     // File exists => Delete file
-                    fs.unlink(filePath, function(err) {
-                        if(err) {
+                    fs.unlink(filePath, function (err) {
+                        if (err) {
                             logger.error(err + ' (' + shortKey + ')');
                             return res.status(500).send(err);
                         }
@@ -241,7 +241,7 @@ app.get('/delete', function(req, res) {
 
 // based on whether or not SSL is enabled, run http or https web server
 var server;
-if(!config.ssl.useSSL) {
+if (!config.ssl.useSSL) {
     var http = require('http');
     server = http.createServer(app);
     server.listen(PORT);
