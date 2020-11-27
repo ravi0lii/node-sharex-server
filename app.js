@@ -5,15 +5,14 @@
 // Constants
 const config = require('./config.json')
 const version = require('./package.json').version;
-const keys = config.keys;
 
 // Get the port
 const PORT = config.port;
 
-// Logger
+// Custom modules
 var logger = require('./logger.js');
-// Responses
-var response = require('./response.js')
+var response = require('./response.js');
+var middleware = require('./middleware.js');
 // Random string
 var randomString = require('random-string');
 // Path
@@ -64,120 +63,95 @@ app.get('/', function (req, res) {
 });
 
 // Upload file
-app.post('/upload', function (req, res) {
-    // Check if key is set
-    if (!req.body.key) {
-        response.emptyKey(res);
+app.post('/upload', middleware.keyRequired, function (req, res) {
+    // Check if file was uploaded
+    if (!req.files || !req.files.file) {
+        logger.info('No file was sent, aborting... (' + req.locals.shortKey + ')');
+        response.noFileUploaded(res);
     } else {
-        // Check if key is registered
-        var key = req.body.key;
-        var shortKey = key.substr(0, 3) + '...';
-        if (keys.indexOf(key) == -1) {
-            logger.auth('Failed authentication with key ' + key);
-            response.invalidKey(res);
-        } else {
-            // Key is valid
-            logger.auth('Authentication with key ' + shortKey + ' succeeded');
-            // Check if file was uploaded
-            if (!req.files || !req.files.file) {
-                logger.info('No file was sent, aborting... (' + shortKey + ')');
-                response.noFileUploaded(res);
+        // File was uploaded
+        var file = req.files.file;
+
+        // Generate a unique path (so it will not conflict with any existing files named the same)
+        var getUniqueFilepathDeferred = Q.defer();
+        var fileExtension = path.extname(file.name);
+
+        var tryNewRandomString = function () {
+            var newFileName = randomString({ length: config.fileNameLength }) + fileExtension;
+            var uploadPath = path.join(config.uploadDirectory, newFileName);
+
+            fileExists(uploadPath).then(function (doesFileExist) {
+                if (doesFileExist) {
+                    tryNewRandomString();
+                } else {
+                    getUniqueFilepathDeferred.resolve({ fileName: newFileName, path: uploadPath });
+                }
+            }, function (err) {
+                res.status(500).send(err + ' (' + req.locals.shortKey + ')'); // TODO: Better handling
+            });
+        };
+        tryNewRandomString();
+
+        getUniqueFilepathDeferred.promise.then(function (payload) {
+            logger.info('Uploading file ' + file.name + ' to ' + payload.path + ' (' + req.locals.shortKey + ')');
+
+            // Check file extension (if enabled)
+            if (config.fileExtensionCheck.enabled && config.fileExtensionCheck.extensionsAllowed.indexOf(fileExtension) == -1) {
+                // Invalid file extension
+                logger.info('File ' + file.name + ' has an invalid extension, aborting... (' + req.locals.shortKey + ')');
+                response.invalidFileExtension(res);
             } else {
-                // File was uploaded
-                var file = req.files.file;
-
-                // Generate a unique path (so it will not conflict with any existing files named the same)
-                var getUniqueFilepathDeferred = Q.defer();
-                var fileExtension = path.extname(file.name);
-
-                var tryNewRandomString = function () {
-                    var newFileName = randomString({ length: config.fileNameLength }) + fileExtension;
-                    var uploadPath = path.join(config.uploadDirectory, newFileName);
-
-                    fileExists(uploadPath).then(function (doesFileExist) {
-                        if (doesFileExist) {
-                            tryNewRandomString();
-                        } else {
-                            getUniqueFilepathDeferred.resolve({ fileName: newFileName, path: uploadPath });
-                        }
-                    }, function (err) {
-                        res.status(500).send(err + ' (' + shortKey + ')'); // TODO: Better handling
-                    });
-                };
-                tryNewRandomString();
-
-                getUniqueFilepathDeferred.promise.then(function (payload) {
-                    logger.info('Uploading file ' + file.name + ' to ' + payload.path + ' (' + shortKey + ')');
-
-                    // Check file extension (if enabled)
-                    if (config.fileExtensionCheck.enabled && config.fileExtensionCheck.extensionsAllowed.indexOf(fileExtension) == -1) {
-                        // Invalid file extension
-                        logger.info('File ' + file.name + ' has an invalid extension, aborting... (' + shortKey + ')');
-                        response.invalidFileExtension(res);
-                    } else {
-                        // Move files
-                        file.mv(payload.path, function (err) {
-                            if (err) {
-                                logger.error(err + ' (' + shortKey + ')');
-                                return res.status(500).send(err); // TODO: Better error handling
-                            }
-
-                            // Return the informations
-                            logger.info('Uploaded file ' + file.name + ' to ' + payload.path + ' (' + shortKey + ')');
-                            response.uploaded(res, config.staticFileServerUrl + payload.fileName, config.serverUrl + '/delete?filename=' + payload.fileName + '&key=' + key);
-                        });
+                // Move files
+                file.mv(payload.path, function (err) {
+                    if (err) {
+                        logger.error(err + ' (' + req.locals.shortKey + ')');
+                        return res.status(500).send(err); // TODO: Better error handling
                     }
+
+                    // Return the informations
+                    logger.info('Uploaded file ' + file.name + ' to ' + payload.path + ' (' + req.locals.shortKey + ')');
+                    response.uploaded(res, config.staticFileServerUrl + payload.fileName, config.serverUrl + '/delete?filename=' + payload.fileName + '&key=' + key);
                 });
             }
-        }
+        });
     }
 });
 
 // Delete file
-app.get('/delete', function (req, res) {
-    if (!req.query.filename || !req.query.key) {
-        response.keyOrFileNameIsEmpty(res);
+app.get('/delete', middleware.keyRequired, function (req, res) {
+    if (!req.query.filename) {
+        response.responseFileNameIsEmpty(res);
     } else {
-        // Check if key is registered
-        var key = req.query.key;
-        var shortKey = key.substr(0, 3) + '...';
-        if (keys.indexOf(key) == -1) {
-            logger.auth('Failed authentication with key ' + key);
-            response.invalidKey(res);
-        } else {
-            // Key is valid
-            logger.auth('Authentication with key ' + shortKey + ' succeeded');
-            // Generate file informations
-            var fileName = req.query.filename;
-            var filePath = path.join(config.uploadDirectory, fileName);
-            logger.info('Trying to delete ' + fileName + ' (' + shortKey + ')');
+        // Generate file informations
+        var fileName = req.query.filename;
+        var filePath = path.join(config.uploadDirectory, fileName);
+        logger.info('Trying to delete ' + fileName + ' (' + req.locals.shortKey + ')');
 
-            // Check if file exists
-            fileExists(filePath, function (err, exists) {
-                if (err) {
-                    logger.error(err + ' (' + shortKey + ')');
-                    return res.status(500).send(err); // TODO: Better error handling
-                }
+        // Check if file exists
+        fileExists(filePath, function (err, exists) {
+            if (err) {
+                logger.error(err + ' (' + req.locals.shortKey + ')');
+                return res.status(500).send(err); // TODO: Better error handling
+            }
 
-                if (!exists) {
-                    // File doesnt exists
-                    logger.info('File ' + fileName + ' doesnt exists, aborting... (' + shortKey + ')');
-                    response.fileDoesNotExists(res);
-                } else {
-                    // File exists => Delete file
-                    fs.unlink(filePath, function (err) {
-                        if (err) {
-                            logger.error(err + ' (' + shortKey + ')');
-                            return res.status(500).send(err); // TODO: Better error handling
-                        }
+            if (!exists) {
+                // File doesnt exists
+                logger.info('File ' + fileName + ' doesnt exists, aborting... (' + req.locals.shortKey + ')');
+                response.fileDoesNotExists(res);
+            } else {
+                // File exists => Delete file
+                fs.unlink(filePath, function (err) {
+                    if (err) {
+                        logger.error(err + ' (' + req.locals.shortKey + ')');
+                        return res.status(500).send(err); // TODO: Better error handling
+                    }
 
-                        // Return the information
-                        logger.info('Deleted file ' + fileName + ' (' + shortKey + ')');
-                        response.deleted(res, fileName);
-                    });
-                }
-            });
-        }
+                    // Return the information
+                    logger.info('Deleted file ' + fileName + ' (' + req.locals.shortKey + ')');
+                    response.deleted(res, fileName);
+                });
+            }
+        });
     }
 });
 

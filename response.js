@@ -68,8 +68,9 @@ var responseFileDoesntExists = function (res) {
     responseBadRequest(res, 'The file does not exists.', 'Submit a existing file name.')
 }
 
-var responseKeyOrFileNameIsEmpty = function (res) {
-    responseBadRequest(res, 'Key and/or file name is empty.', 'Submit a key and/or file name.');
+// Responds with a file name is empty error
+var responseFileNameIsEmpty = function (res) {
+    responseBadRequest(res, 'File name is empty.', 'Provide a file name.');
 }
 
 module.exports.emptyKey = responseEmptyKey;
@@ -79,4 +80,4 @@ module.exports.invalidFileExtension = responseInvalidFileExtension;
 module.exports.uploaded = responseUploaded;
 module.exports.deleted = responseDeleted;
 module.exports.fileDoesNotExists = responseFileDoesntExists;
-module.exports.keyOrFileNameIsEmpty = responseKeyOrFileNameIsEmpty;
+module.exports.fileNameIsEmpty = responseFileNameIsEmpty;
