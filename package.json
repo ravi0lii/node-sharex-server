@@ -15,12 +15,12 @@
     "upload",
     "server"
   ],
-  "author": "Moquo",
+  "author": "ravi0lii",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Moquo/node-sharex-upload-server/issues"
+    "url": "https://github.com/ravi0lii/node-sharex-upload-server/issues"
   },
-  "homepage": "https://github.com/Moquo/node-sharex-upload-server#readme",
+  "homepage": "https://github.com/ravi0lii/node-sharex-upload-server#readme",
   "dependencies": {
     "body-parser": "^1.18.2",
     "colors": "^1.1.2",

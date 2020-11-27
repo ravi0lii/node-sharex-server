@@ -12,6 +12,8 @@ const PORT = process.env.SUS_PORT || 3854;
 
 // Logger
 var logger = require('./logger.js');
+// Responses
+var response = require('./response.js')
 // Random string
 var randomString = require('random-string');
 // Path
@@ -58,49 +60,28 @@ app.use(fileUpload({
 
 // / page
 app.get('/', function (req, res) {
-    res.send('This server runs <a href="https://github.com/Moquo/node-sharex-server">node-sharex-server</a> v' + version + ' by <a href="https://moquo.de">Moquo</a>.');
+    res.send('This server runs <a href="https://github.com/ravi0lii/node-sharex-server">node-sharex-server</a> v' + version + ' by <a href="https://github.com/ravi0lii">ravi0lii</a>.');
 });
 
 // Upload file
 app.post('/upload', function (req, res) {
     // Check if key is set
     if (!req.body.key) {
-        res.setHeader('Content-Type', 'application/json');
-        res.status(400).send(JSON.stringify({
-            success: false,
-            error: {
-                message: 'Key is empty.',
-                fix: 'Submit a key.'
-            }
-        }));
+        response.emptyKey(res);
     } else {
         // Check if key is registered
         var key = req.body.key;
         var shortKey = key.substr(0, 3) + '...';
         if (keys.indexOf(key) == -1) {
             logger.auth('Failed authentication with key ' + key);
-            res.setHeader('Content-Type', 'application/json');
-            res.status(401).send(JSON.stringify({
-                success: false,
-                error: {
-                    message: 'Key is invalid.',
-                    fix: 'Submit a valid key.'
-                }
-            }));
+            response.invalidKey(res);
         } else {
             // Key is valid
             logger.auth('Authentication with key ' + shortKey + ' succeeded');
             // Check if file was uploaded
-            if (!req.files.file) {
+            if (!req.files || !req.files.file) {
                 logger.info('No file was sent, aborting... (' + shortKey + ')');
-                res.setHeader('Content-Type', 'application/json');
-                res.status(400).send(JSON.stringify({
-                    success: false,
-                    error: {
-                        message: 'No file was uploaded.',
-                        fix: 'Upload a file.'
-                    }
-                }));
+                response.noFileUploaded(res);
             } else {
                 // File was uploaded
                 var file = req.files.file;
@@ -120,7 +101,7 @@ app.post('/upload', function (req, res) {
                             getUniqueFilepathDeferred.resolve({ fileName: newFileName, path: uploadPath });
                         }
                     }, function (err) {
-                        res.status(500).send(err + ' (' + shortKey + ')');
+                        res.status(500).send(err + ' (' + shortKey + ')'); // TODO: Better handling
                     });
                 };
                 tryNewRandomString();
@@ -132,32 +113,18 @@ app.post('/upload', function (req, res) {
                     if (config.fileExtensionCheck.enabled && config.fileExtensionCheck.extensionsAllowed.indexOf(fileExtension) == -1) {
                         // Invalid file extension
                         logger.info('File ' + file.name + ' has an invalid extension, aborting... (' + shortKey + ')');
-                        res.setHeader('Content-Type', 'application/json');
-                        res.status(400).send(JSON.stringify({
-                            success: false,
-                            error: {
-                                message: 'Invalid file extension.',
-                                fix: 'Upload a file with a valid extension.'
-                            }
-                        }));
+                        response.invalidFileExtension(res);
                     } else {
                         // Move files
                         file.mv(payload.path, function (err) {
                             if (err) {
                                 logger.error(err + ' (' + shortKey + ')');
-                                return res.status(500).send(err);
+                                return res.status(500).send(err); // TODO: Better error handling
                             }
 
                             // Return the informations
                             logger.info('Uploaded file ' + file.name + ' to ' + payload.path + ' (' + shortKey + ')');
-                            res.setHeader('Content-Type', 'application/json');
-                            res.send(JSON.stringify({
-                                success: true,
-                                file: {
-                                    url: config.staticFileServerUrl + payload.fileName,
-                                    delete_url: config.serverUrl + '/delete?filename=' + payload.fileName + '&key=' + key
-                                }
-                            }));
+                            response.uploaded(res, config.staticFileServerUrl + payload.fileName, config.serverUrl + '/delete?filename=' + payload.fileName + '&key=' + key);
                         });
                     }
                 });
@@ -169,28 +136,14 @@ app.post('/upload', function (req, res) {
 // Delete file
 app.get('/delete', function (req, res) {
     if (!req.query.filename || !req.query.key) {
-        res.setHeader('Content-Type', 'application/json');
-        res.status(400).send(JSON.stringify({
-            success: false,
-            error: {
-                message: 'Key and/or file name is empty.',
-                fix: 'Submit a key and/or file name.'
-            }
-        }));
+        response.keyOrFileNameIsEmpty(res);
     } else {
         // Check if key is registered
         var key = req.query.key;
         var shortKey = key.substr(0, 3) + '...';
         if (keys.indexOf(key) == -1) {
             logger.auth('Failed authentication with key ' + key);
-            res.setHeader('Content-Type', 'application/json');
-            res.status(401).send(JSON.stringify({
-                success: false,
-                error: {
-                    message: 'Key is invalid.',
-                    fix: 'Submit a valid key.'
-                }
-            }));
+            response.invalidKey(res);
         } else {
             // Key is valid
             logger.auth('Authentication with key ' + shortKey + ' succeeded');
@@ -203,35 +156,24 @@ app.get('/delete', function (req, res) {
             fileExists(filePath, function (err, exists) {
                 if (err) {
                     logger.error(err + ' (' + shortKey + ')');
-                    return res.status(500).send(err);
+                    return res.status(500).send(err); // TODO: Better error handling
                 }
 
                 if (!exists) {
                     // File doesnt exists
                     logger.info('File ' + fileName + ' doesnt exists, aborting... (' + shortKey + ')');
-                    res.setHeader('Content-Type', 'application/json');
-                    res.status(400).send(JSON.stringify({
-                        success: false,
-                        error: {
-                            message: 'The file doesnt exists.',
-                            fix: 'Submit a existing file name.'
-                        }
-                    }));
+                    response.fileDoesNotExists(res);
                 } else {
                     // File exists => Delete file
                     fs.unlink(filePath, function (err) {
                         if (err) {
                             logger.error(err + ' (' + shortKey + ')');
-                            return res.status(500).send(err);
+                            return res.status(500).send(err); // TODO: Better error handling
                         }
 
-                        // Return the informations
+                        // Return the information
                         logger.info('Deleted file ' + fileName + ' (' + shortKey + ')');
-                        res.setHeader('Content-Type', 'application/json');
-                        res.send(JSON.stringify({
-                            success: true,
-                            message: "Deleted file " + fileName
-                        }));
+                        response.deleted(res, fileName);
                     });
                 }
             });
@@ -244,7 +186,6 @@ var server;
 if (!config.ssl.useSSL) {
     var http = require('http');
     server = http.createServer(app);
-    server.listen(PORT);
 } else {
     var https = require('https');
     server = https.createServer({

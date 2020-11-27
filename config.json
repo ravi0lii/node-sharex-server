@@ -4,8 +4,8 @@
     ],
     "fileSizeLimit": 52428800,
     "fileNameLength": 8,
-    "useLocalStaticServe": false,
-    "staticFileServerUrl": "http://localhost:3854",
+    "useLocalStaticServe": true,
+    "staticFileServerUrl": "http://localhost:3854/f/",
     "serverUrl": "http://localhost:3854",
     "uploadDirectory": "uploads/",
     "ssl": {
