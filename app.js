@@ -24,10 +24,10 @@ var fileExists = require('file-exists');
 // Q promises/deferreds
 var Q = require('q');
 
-// Create /uploads directory if not exists
-if (config.useLocalStaticServe && !fs.existsSync('./uploads/')) {
-    fs.mkdirSync('./uploads/');
-    logger.info('Created /uploads directory');
+// Create uploads directory if it does not exists and local static files should be served
+if (config.useLocalStaticServe && !fs.existsSync(config.uploadDirectory)) {
+    fs.mkdirSync(config.uploadDirectory);
+    logger.info('Created upload directory');
 }
 
 // Express basic stuff
@@ -36,7 +36,7 @@ var app = express();
 
 // Static directory for files
 if (config.useLocalStaticServe) {
-    app.use('/f', express.static('./uploads'));
+    app.use('/f', express.static(config.uploadDirectory));
 }
 
 // body-parser middleware
