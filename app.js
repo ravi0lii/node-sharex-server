@@ -127,8 +127,6 @@ app.get('/delete', middleware.keyRequired, function (req, res) {
         var filePath = path.join(config.uploadDirectory, fileName);
         logger.info('Trying to delete ' + fileName + ' (' + req.locals.shortKey + ')');
 
-		var key = req.query.key;
-		console.log("passed: "+key + " required: "+req.locals.shortKey);
 
         // Check if file exists
         fileExists(filePath, function (err, exists) {
