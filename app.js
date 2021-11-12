@@ -110,7 +110,7 @@ app.post('/upload', middleware.keyRequired, function (req, res) {
 
                     // Return the informations
                     logger.info('Uploaded file ' + file.name + ' to ' + payload.path + ' (' + req.locals.shortKey + ')');
-                    response.uploaded(res, config.staticFileServerUrl + payload.fileName, config.serverUrl + '/delete?filename=' + payload.fileName + '&key=' + key);
+                    response.uploaded(res, config.staticFileServerUrl + payload.fileName, config.serverUrl + '/delete?filename=' + payload.fileName + '&key=' + req.body.key);
                 });
             }
         });
@@ -126,6 +126,7 @@ app.get('/delete', middleware.keyRequired, function (req, res) {
         var fileName = req.query.filename;
         var filePath = path.join(config.uploadDirectory, fileName);
         logger.info('Trying to delete ' + fileName + ' (' + req.locals.shortKey + ')');
+
 
         // Check if file exists
         fileExists(filePath, function (err, exists) {

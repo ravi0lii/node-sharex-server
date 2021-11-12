@@ -53,5 +53,13 @@ You can configure the server in the `config.json` file. Options:
 }
 ```
 
+# How to setup in sharex
+* Copy the client config, change it, and copy it into your clipboard
+* Go to destinations, change image uploader to custom image uploader
+* Go back to destinations, custom image uploader settings
+* Import>from clipboard
+* It should automatically create the config!
+
+
 # License
 [MIT](/LICENSE)
